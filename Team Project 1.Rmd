@@ -2,7 +2,9 @@
 title: "Team Project 1"
 author: "Allison Young and Anna Berman"
 date: "10/24/2018"
-output: html_document
+output:
+  pdf_document: default
+  html_document: default
 ---
 
 ```{r setup, include=FALSE}
@@ -52,7 +54,7 @@ summary(lalonde)
 
 For concern of multicollinearity, we cannot include both nodegree and education in our model (nodegree is in essence a binned version of education with 0 being over 12 years of education and 1 being less than 12 years of education). We were originally concerned with including both 1974 salary (re74) and 1975 salary (re75), however, the correlation between these two variables is only `r round(cor(lalonde$re74, lalonde$re75),2)` which low enough to allow both in our model. No other variables had high enough correlation to be a multicollinearity concern.
 
-```{r, echo = FALSE, fig.height=8, warning=FALSE}
+```{r, echo = FALSE, fig.height=6, warning=FALSE}
 # TREAT
 e1 <- ggplot(lalonde) +
     geom_boxplot(mapping = aes(x = treat, y = re78)) + 
@@ -143,7 +145,7 @@ The residuals of this model are normally distributed and fit our assumptions of 
 
 Influential points (see Appendix Fig. 3)
 
-```{r}
+```{r, echo = FALSE}
 final_linear_fit <- lm(re78 ~ treat + agec + educ.bin + black + hispan + married + re74c + re75c, data = lalonde)
 summary(final_linear_fit)
 
