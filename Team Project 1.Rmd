@@ -52,7 +52,9 @@ summary(lalonde)
 
 ## Exploratory Data Analysis
 
-For concern of multicollinearity, we cannot include both nodegree and education in our model (nodegree is in essence a binned version of education with 0 being over 12 years of education and 1 being less than 12 years of education). We were originally concerned with including both 1974 salary (re74) and 1975 salary (re75), however, the correlation between these two variables is only `r round(cor(lalonde$re74, lalonde$re75),2)` which low enough to allow both in our model. No other variables had high enough correlation to be a multicollinearity concern.
+For concern of multicollinearity, we cannot include both nodegree and education in our model (nodegree is, in essence, a binned version of education with 0 being over 12 years of education and 1 being less than 12 years of education). We were originally concerned with including both 1974 salary (re74) and 1975 salary (re75), however, the correlation between these two variables is only `r round(cor(lalonde$re74, lalonde$re75),2)` which low enough to allow both salary variables as predictors in our model. No other variables had high enough correlation to be a multicollinearity concern.
+
+A plot of each predictor in relation to our outcome variable, 1978 salary is below.
 
 ```{r, echo = FALSE, fig.height=6, warning=FALSE}
 # TREAT
@@ -135,13 +137,11 @@ grid.arrange(e1, e2, e3, e4, e5, e6, e7, e8, e9,
  
 ## Model Selection
 
+ Through a series of modeling fittings, we examined a variety of linear models to answer the question, 'Is there evidence that workers who receive job training tend to earn higher wages than workers who do not receive job training?'. We evaluated each model based on R-squared value and whether addition variables and interactions resulted in a significant or near-significant nested F test results.
+ 
+We attempted logging our outcome variable, 1978 salary (re78), using nodegree as opposed to education, and using education as a continuous variable as well as a binned factor variable. We also looked at potential interaction effects between treatment and education as well as treatment and black (see Appendix Fig. 1 for plots of potential interaction effects). Additionally, we used mean-centered continuous variables to aid in interpretation.
 
-
-We evaluated each model based on model's R-squared and whether addition variables and interactions resulted in a significant or near-significant nested F test. Through a series of modeling fittings, we examined a variety of linear models to answer the question, 'Is there evidence that workers who receive job training tend to earn higher wages than workers who do not receive job training?'. We attempted logging our outcome variable, 1978 salary (re78), using nodegree as opposed to education, and using education as a continuous variable as well as a binned factor variable. We also looked at potential interaction effects between treatment and education as well as treatment and black (see Appendix Fig. 1 for plots of potential interaction effects). Additionally, we used mean-centered continuous variables to aid in interpretation.
-
-Ultimately, we selected the following model. 
-
-The residuals of this model are normally distributed and fit our assumptions of linear regression (see Appendix Fig. 2 for residual plots).
+Ultimately, we selected the following model. The residuals of this model are normally distributed and fit our assumptions of linear regression (see Appendix Fig. 2 for residual plots).
 
 Influential points (see Appendix Fig. 3)
 
