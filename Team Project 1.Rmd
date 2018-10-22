@@ -1,7 +1,7 @@
 ---
 title: "Team Project 1"
-author: "Anna Berman"
-date: "10/15/2018"
+author: "Allison Young and Anna Berman"
+date: "10/24/2018"
 output: html_document
 ---
 
@@ -17,32 +17,177 @@ library(gridExtra)
 
 In the 1970s, researchers in the United States ran several randomized experiments intended to evaluate public policy programs. One of the most famous experiments is the National Supported Work Demonstration (NSWD), in which researchers wanted to assess whether or not job training for disadvantaged workers had an effect on their wages. Eligible workers were randomly assigned either to receive job training or not to receive job training. Since this is a randomized experiment, we can make causal claims about the effect of job training on wages for this population of workers. 
 
-We analyze a subset of the data from the NSWD. These and other data were originally analyzed in a highly influential paper by the economist Robert Lalonde. The reference for the study is
+We analyze a subset of the data from the NSWD. These and other data were originally analyzed in a highly influential paper by the economist Robert Lalonde. The reference for the study is Lalonde, R. J. (1986), Evaluating the econometric evaluations of training programs with experimental data, The American Economic Review, 76, 604 - 620.
 
-Lalonde, R. J. (1986), Evaluating the econometric evaluations of training programs with experimental data, The American Economic Review, 76, 604 - 620.
+We will use linear and logistic regression modeling to answer the following questions of interest.
 
-```{r data}
+* Is there evidence that workers who receive job training tend to earn higher wages than workers who do not receive job training? What is a likely range for the effect of training? Is there any evidence that the effects differ by demographic groups? Are there other interesting associations with wages that are worth mentioning?
+
+* Is there evidence that workers who receive job training tend to be more likely to have positive (non-zero) wages than workers who do not receive job training? What is a likely range for the effect of training? Is there any evidence that the effects differ by demographic groups? Are there other interesting associations with positive wages that are worth mentioning?
+
+A summary of the dataset used in both our linear and logisitic regessions is summarized below:
+
+```{r data, echo = FALSE}
 # Load the data
 lalonde <- read.csv('lalondedata.txt') %>%
     mutate(treat = as.factor(treat)) %>%
-    mutate(treat = factor(treat, levels = c(0, 1)))
+    mutate(treat = factor(treat, levels = c(0, 1))) %>%
+    # mean centering
+    mutate(re78c = re78 - mean(re78),
+           re75c = re75 - mean(re75),
+           re74c = re74 - mean(re74),
+           agec = age - mean(age)) %>%
+    # educ
+    mutate(educ.bin = ifelse(educ < 9, 'MS or less',
+                             ifelse(educ < 12, 'Some HS',
+                                    ifelse(educ == 12, 'HS', 'More than HS')))) %>%
+    mutate(educ.bin = factor(educ.bin, levels = c('HS', 'MS or less', 'Some HS', 'More than HS')))
+
 summary(lalonde)
 ```
- 
+
+# Linear Regression
+
 ## Exploratory Data Analysis
 
-```{r explore, fig.height=8}
-g1 <- ggplot(lalonde) +
-    geom_boxplot(mapping = aes(x = treat, y = re74)) + 
-    ylim(c(0,60000))
-g2 <- ggplot(lalonde) +
-    geom_boxplot(mapping = aes(x = treat, y = re75)) + 
-    ylim(c(0,60000)) 
-g3 <- ggplot(lalonde) +
+For concern of multicollinearity, we cannot include both nodegree and education in our model (nodegree is in essence a binned version of education with 0 being over 12 years of education and 1 being less than 12 years of education). We were originally concerned with including both 1974 salary (re74) and 1975 salary (re75), however, the correlation between these two variables is only `r round(cor(lalonde$re74, lalonde$re75),2)` which low enough to allow both in our model. No other variables had high enough correlation to be a multicollinearity concern.
+
+```{r, echo = FALSE, fig.height=8, warning=FALSE}
+# TREAT
+e1 <- ggplot(lalonde) +
     geom_boxplot(mapping = aes(x = treat, y = re78)) + 
-    ylim(c(0,60000))
-grid.arrange(g1, g2, g3,
-             nrow = 2)
+    ylim(c(0,60000)) + 
+    ggtitle('Treatment') +
+    ylab('1978 Salary')
+
+# AGE
+e2 <- ggplot(lalonde) +
+    geom_point(mapping = aes(x = age, y = re78)) + 
+    ylim(c(0,61000)) + 
+    ggtitle('Age (years)') +
+    ylab('1978 Salary')
+
+
+# EDCU.BIN
+e3 <- ggplot(lalonde) +
+    geom_boxplot(mapping = aes(x = educ.bin, y = re78)) + 
+    ylim(c(0,61000)) + 
+    ggtitle('Binned Education') +
+    ylab('1978 Salary')
+
+
+# BLACK
+e4 <- ggplot(lalonde) +
+    geom_boxplot(mapping = aes(x = as.factor(black), y = re78)) + 
+    ylim(c(0,61000)) + 
+    ggtitle('Black') +
+    ylab('1978 Salary')
+
+
+# HISPAN
+e5 <- ggplot(lalonde) +
+    geom_boxplot(mapping = aes(x = as.factor(hispan), y = re78)) + 
+    ylim(c(0,61000)) + 
+    ggtitle('Hispanic') +
+    ylab('1978 Salary')
+
+
+# MARRIED
+e6 <- ggplot(lalonde) +
+    geom_boxplot(mapping = aes(x = as.factor(married), y = re78)) + 
+    ylim(c(0,61000)) + 
+    ggtitle('Married') +
+    ylab('1978 Salary')
+
+
+# RE74
+e7 <- ggplot(lalonde) +
+    geom_point(mapping = aes(x = re74, y = re78)) + 
+    ylim(c(0,61000)) + 
+    xlim(c(0,61000)) +
+    ggtitle('1974 Salary') +
+    ylab('1978 Salary')
+
+
+# RE75
+e8 <- ggplot(lalonde) +
+    geom_point(mapping = aes(x = re75, y = re78)) + 
+    ylim(c(0,61000)) + 
+    xlim(c(0,61000)) + 
+    ggtitle('1975 Salary') +
+    ylab('1978 Salary')
+
+# NODEGREE
+e9 <- ggplot(lalonde) +
+    geom_boxplot(mapping = aes(x = as.factor(nodegree), y = re78)) + 
+    ylim(c(0,61000))+ 
+    ggtitle('No Degree') +
+    ylab('1978 Salary')
+
+
+# Plot all the plots together
+grid.arrange(e1, e2, e3, e4, e5, e6, e7, e8, e9,
+             top = 'Predictors vs. 1978 Salary')
 ```
+
+ 
+## Model Selection
+
+
+
+We evaluated each model based on model's R-squared and whether addition variables and interactions resulted in a significant or near-significant nested F test. Through a series of modeling fittings, we examined a variety of linear models to answer the question, 'Is there evidence that workers who receive job training tend to earn higher wages than workers who do not receive job training?'. We attempted logging our outcome variable, 1978 salary (re78), using nodegree as opposed to education, and using education as a continuous variable as well as a binned factor variable. We also looked at potential interaction effects between treatment and education as well as treatment and black (see Appendix Fig. 1 for plots of potential interaction effects). Additionally, we used mean-centered continuous variables to aid in interpretation.
+
+Ultimately, we selected the following model. 
+
+The residuals of this model are normally distributed and fit our assumptions of linear regression (see Appendix Fig. 2 for residual plots).
+
+Influential points (see Appendix Fig. 3)
+
+```{r}
+final_linear_fit <- lm(re78 ~ treat + agec + educ.bin + black + hispan + married + re74c + re75c, data = lalonde)
+summary(final_linear_fit)
+
+coeff <- cbind(summary(final_linear_fit)$coefficients[, c(1,2)],
+               confint(final_linear_fit))
+coeff <- data.frame(coeff) 
+names(coeff) <- c('Estimate', 'Std.Error', '2.5%', '97.5%')
+coeff
+```
+
+## Interpretation
+
+**Intercept**: For non-black, non-hispanic, un-married individuals of average age, average 1974 and 1975 salaries, with High School only education, who did not recieve treatment, we estimate the average salary in 1978 to be \$`r round(coeff['(Intercept)','Estimate'],2)` (95% CI: \$`r round(coeff['(Intercept)','2.5%'],2)`, \$`r round(coeff['(Intercept)','97.5%'],2)`).
+
+**Treatment**: Holding all else constant, individuals who participated in the treatment are estimated to have average 1978 salaries increased by \$`r round(coeff['treat','Estimate'],2)` (95% CI: \$`r round(coeff['treat','2.5%'],2)`, \$`r round(coeff['treat','97.5%'],2)`).
+
+**Age**: Holding all else constant, for each 10 years an individual ages on average we estimate his salary to increase by \$`r round(coeff['agec','Estimate']*10,2)` (95% CI: \$`r round(coeff['agec','2.5%']*10,2)`, \$`r round(coeff['agec','97.5%']*10,2)`). Given that this confidence interval includes 0, we are not confident that there is a meaningful effect of age on 1978 salary.
+
+**Education**: Holding all else contant, for an individual with:
+
+* Less than a middle school education: we estimate avergage 1978 salary to be \$`r -round(coeff['educ.binMS or less','Estimate'],2)` less (95% CI: \$`r round(coeff['educ.binMS or less','2.5%'],2)`, \$`r round(coeff['educ.binMS or less','97.5%'],2)`). 
+
+* Some high school education: we estimate avergage 1978 salary to be \$`r round(coeff['educ.binSome HS','Estimate'],2)` more (95% CI: \$`r round(coeff['educ.binSome HS','2.5%'],2)`, \$`r round(coeff['educ.binSome HS','97.5%'],2)`). Given that this confidence interval includes 0, we are not confident that there is a meaningful effect of some high school compared to completion of high school on 1978 salary.
+
+* More than a high school education: we estimate avergage 1978 salary to be \$`r round(coeff['educ.binMore than HS','Estimate'],2)` more (95% CI: \$`r round(coeff['educ.binMore than HS','2.5%'],2)`, \$`r round(coeff['educ.binMore than HS','97.5%'],2)`).
+
+**Black**: Holding all else constant, for black individuals we estimate average 1978 salaries to be \$`r -round(coeff['black','Estimate'],2)` less (95% CI: \$`r round(coeff['black','2.5%'],2)`, \$`r round(coeff['black','97.5%'],2)`). Given that this confidence interval includes 0, we are not confident that there is a meaningful effect of blackness on 1978 salary.
+
+**Hispanic**: Holding all else constant, for black individuals we estimate average 1978 salaries to be \$`r round(coeff['hispan','Estimate'],2)` more (95% CI: \$`r round(coeff['hispan','2.5%'],2)`, \$`r round(coeff['hispan','97.5%'],2)`). Given that this confidence interval includes 0, we are not confident that there is a meaningful effect of hispanic ethnicity on 1978 salary.
+
+**1974 Salary**: Holding all else constant, for each $1,000 an individual made in 1974, on average we estimate his 1978 salary to be \$`r round(coeff['re74c','Estimate']*1000,2)` higher (95% CI: \$`r round(coeff['re74c','2.5%']*1000,2)`, \$`r round(coeff['re74c','97.5%']*1000,2)`). 
+
+**1975 Salary**: Holding all else constant, for each $1,000 an individual made in 1975, on average we estimate his 1978 salary to be \$`r round(coeff['re75c','Estimate']*1000,2)` higher (95% CI: \$`r round(coeff['re75c','2.5%']*1000,2)`, \$`r round(coeff['re75c','97.5%']*1000,2)`). 
+
+## Conclusion
+
+### Limitations
+
+
+# Appendix
+
+Fig 1: Linear Interaction Plots
+Fig 2: Linear Residual Plots
+Fig 3: Influential points
+
 
  
