@@ -7,9 +7,9 @@ output:
   pdf_document: default
 ---
 
-```{r setup, include=FALSE}
+```{r setup, include=FALSE, warning=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
-setwd('/Users/annaberman/Desktop/702 Modeling/Assignments/Team Project 1')
+setwd('/Users/annaberman/Desktop/702 Modeling/Assignments/Team Project #1')
 library(ggplot2)
 library(dplyr)
 library(gridExtra)
@@ -139,11 +139,11 @@ grid.arrange(e1, e2, e3, e4, e5, e6, e7, e8, e9,
 
 Through a series of modeling fittings, we examined a variety of linear models to answer the question, 'Is there evidence that workers who receive job training tend to earn higher wages than workers who do not receive job training?'. We evaluated each model based on R-squared value and whether addition variables and interactions resulted in a significant or near-significant nested F test results.
  
-We attempted logging our outcome variable (1978 salary (re78)), logging 1974 and 1975 salaries, using nodegree as opposed to education, using education as a continuous variable as well as a binned factor variable. We also looked at potential interaction effects between treatment and education, treatment and black, treatment and hispanic, and treatment and age (see Appendix Fig. 1 for plots of potential interaction effects). Additionally, we used mean-centered continuous variables to aid in interpretation.
+We attempted logging our outcome variable (1978 salary (re78)), logging 1974 and 1975 salaries, using nodegree as opposed to education, using education as a continuous variable as well as a binned factor variable. We also looked at potential interaction effects between treatment and education, treatment and black, treatment and hispanic, and treatment and age (see appendix Fig. 1 for plots of potential interaction effects). Additionally, we used mean-centered continuous variables to aid in interpretation.
 
-Ultimately, we selected the following model. The residuals of this model are normally distributed and fit our assumptions of linear regression (see Appendix Fig. 2 for residual plots).
+Before we finalized our model selection we examined the residuals and influential points. The residuals of this model are normally distributed and fit our assumptions of linear regression (see appendix). The most influential points in our model were determined to be corner cases and did not call for alternation of our final model. (For further details on our model's redisuals and influential points, see appendix).
 
-Influential points (see Appendix Fig. 3)
+Ultimately, we selected the model summarized below. 
 
 ```{r, echo = FALSE}
 final_linear_fit <- lm(re78 ~ treat + agec + educ.bin + black + hispan + married + re74c + re75c, data = lalonde)
@@ -153,10 +153,13 @@ coeff <- cbind(summary(final_linear_fit)$coefficients[, c(1,2)],
                confint(final_linear_fit))
 coeff <- data.frame(coeff) 
 names(coeff) <- c('Estimate', 'Std.Error', '2.5%', '97.5%')
-coeff
 ```
 
+
+
 ## Interpretation
+
+Our model has an R-squared of `r round(summary(final_linar_fit)$r.squared,2)`. In other words, our model explains `r round(summary(final_linar_fit)$r.squared,2)*100`% of the variance 1978 salary.
 
 **Intercept**: For non-black, non-hispanic, un-married individuals of average age, average 1974 and 1975 salaries, with High School only education, who did not recieve treatment, we estimate the average salary in 1978 to be \$`r round(coeff['(Intercept)','Estimate'],2)` (95% CI: \$`r round(coeff['(Intercept)','2.5%'],2)`, \$`r round(coeff['(Intercept)','97.5%'],2)`). 
 
@@ -184,9 +187,13 @@ coeff
 
 ## Discussion
 
+
+
+* R-squared
+
 Because this is a randomized control trial, we can say treatment may result in increased salaries. However the effect size of treatment may be small. 
 
-The effect is confounded by age, ethnicity, education, marital status, and previous salary.
+* The effect is confounded by age, ethnicity, education, marital status, and previous salary.
 
 * Both being black being hispanic, and being married may not have an effect on salary
 
@@ -194,19 +201,52 @@ The effect is confounded by age, ethnicity, education, marital status, and previ
 
 * Unclear whether there is a huge difference between some hs and hs completion. Matters when you have less than ms or more than hs
 
-Fig Treatment
 
 ### Limitations
 
-Doesn't work for wealthy or older individuals
+Our model has an R-squared of `r round(summary(final_linar_fit)$r.squared,2)`. In other words, our model explains `r round(summary(final_linar_fit)$r.squared,2)*100`% of the variance 1978 salary. It seems that we are missing variables in our model that would explain additional variation in 1978 salary, therefore more research is needed to fully understand the relationship between job training programs and salary and the mediating variables in this relationship.
+
+Doesn't work for wealthy or older individuals (Why older?)
+Also black
 Outliers
 
 # Appendix
 
 Fig 1: Linear Interaction Plots
 Fig 2: Linear Residual Plots
-Fig 3: Influential points 
-Code
+
+### Influential Points
+
+#### Linear Model
+Observations with high leverage or cooks distance in our final linear model are below:
+```{r influential, echo = FALSE}
+library(MASS)
+# Calcate leveage and cooks distance for each observation
+leverage = hatvalues(final_linear_fit)
+cooks = cooks.distance(final_linear_fit)
+
+# Append leverage and cooks to our data
+leverage <- lalonde %>%
+    mutate(leverage, cooks)
+
+# Plot leverage vs. id
+l <- ggplot(data = leverage) +
+    geom_point(mapping = aes(x = seq(nrow(lalonde)), y = leverage)) +
+    labs(subtitle = 'Leverage')
+# Plot cooks vs. id
+c <- ggplot(data = leverage) +
+    geom_point(mapping = aes(x = seq(nrow(lalonde)), y = cooks)) +
+    labs(subtitle = 'High Cooks Distance')
+
+grid.arrange(l, c, top = 'Potentially Influential Points')
+
+# Take a look at the potentially influential points
+leverage %>%
+    filter(leverage > .05 | cooks > .02)
+```
+
+The influential points show that our model is not as accurate in its predictions for those who have high salaries in either 1974 or 1975. Because these are not the typical demographic to partake in a job training program, they are not of great interest for this research paper. Therefore we do not alter our model. 
+
 Any other limitations plots + outlier
 
 
