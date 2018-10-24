@@ -185,6 +185,8 @@ prop.table(table(lalonde$employed78, fit1$fitted > threshold),1)*100
 fit2 <- glm(employed78 ~ treat + agec + married + black + hispan + educ + re74 + re75, data = lalonde, family = binomial)
 summary(fit2)
 
+
+
 # Area under the curve: 0.649
 roc(lalonde$employed78, fitted(fit2), plot=T, legacy.axes=T, print.thres="best")
 threshold = .773
@@ -195,6 +197,8 @@ prop.table(table(lalonde$employed78, fit2$fitted > threshold),1)*100
 # Education bin2
 fit3 <- glm(employed78 ~ treat + agec + married + black + hispan + educ.bin2 + re74 + re75, data = lalonde, family = binomial)
 summary(fit3)
+
+
 
 # Area under the curve: 0.6605
 roc(lalonde$employed78, fitted(fit3), plot=T, legacy.axes=T, print.thres="best")
@@ -228,6 +232,8 @@ prop.table(table(lalonde$employed78, fit6$fitted > threshold),1)*100
 # Binary 74 salary + interaction
 fit7 <- glm(employed78 ~ treat*employed74 + agec + married + black + hispan + educ.bin2 + re75, data = lalonde, family = binomial)
 summary(fit7)
+
+anova(fit3, fit7, test = 'Chisq')
 
 # Area under the curve: 0.6697
 roc(lalonde$employed78, fitted(fit7), plot=T, legacy.axes=T, print.thres="best")
@@ -268,14 +274,19 @@ summary(fit10)
 exp((summary(fit10)$coefficients))
 exp(confint(fit10))
 
+anova(fit7, fit10, test = 'Chisq')
+
 # Area under the curve: 0.6823
 roc(lalonde$employed78, fitted(fit10), plot=T, legacy.axes=T, print.thres="best")
 threshold = .752
 prop.table(table(lalonde$employed78, fit10$fitted > threshold),1)*100
 
 
-final_fit <- fit10
 
+
+
+final_fit <- fit10
+final_fit <- fit7
 
 
 
@@ -304,6 +315,42 @@ tapply(rawreds, lalonde$employed74, mean)
 # add a third-degree poly?
 binnedplot(x = lalonde$age, y = rawreds,
            xlab = 'Age', ylab = 'Residuals')
+
+```{r}
+# Create dummy dataset for charting
+newval <- data.frame(treat = as.factor(0),
+                     employed74 = 0,
+                     age = seq(25, max(lalonde$age)),
+                     married = 0,
+                     black = 0,
+                     hispan = 0,
+                     educ.bin2 = 'Some HS +',
+                     re75c = 0) %>%
+    mutate(agec = age - mean(age)) %>%
+    mutate(age2 = agec**2, age3 = agec**3)
+
+# Predict responses
+predict <- predict.glm(final_log_fit, newval, interval = 'response', se.fit = TRUE)
+
+# Create confidence interval
+t <- 1.96 ## approx 95% CI
+upr <- predict$fit + (t * predict$se.fit)
+lwr <- predict$fit - (t * predict$se.fit)
+fit <- predict$fit
+
+# Append predictions
+newval <- newval %>%
+    mutate(fit = exp(fit),
+           lwr = exp(lwr),
+           upr = exp(upr))
+
+ggplot(data = newval) + 
+    geom_line(mapping = aes(x = age, y = fit)) + 
+    geom_line(mapping = aes(x = age, y = lwr)) +
+    geom_line(mapping = aes(x = age, y = upr)) 
+
+```
+
 
 # Re75
 # Outlier
