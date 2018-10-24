@@ -312,7 +312,11 @@ coeff
 
 Our model has an AUC of `r round(auc(roc),2)`. Using the suggested threshold of `r threshold`, our model has a sensitivity of `r matrix[2,2]/100` and a specificity of `r 1-(matrix[1,1]/100)`. In other words, our model correctly predicts `r matrix [2,2]`% of nonzero wage earners and `r matrix [1,1]`% of zero wage earners.
 
+<<<<<<< HEAD
 **Intercept**: For non-black, non-hispanic, un-married individuals of average age, average 1975 salaries and a zero 1974 salary, with some High School or more education, who did not recieve treatment, we estimate the odds of nonzero salary 1978 to be `r round(coeff['(Intercept)','Estimate'],2)` (95% CI: \$`r round(coeff['(Intercept)','2.5%'],3)`, `r round(coeff['(Intercept)','97.5%'],2)`). 
+=======
+**Intercept**: For non-black, non-hispanic, un-married individuals of average age, average 1975 salaries and a zero 1974 salary, with some High School or more education, who did not recieve treatment, we estimate the odds of nonzero salary 1978 to be \$`r round(coeff['(Intercept)','Estimate'],2)` (95% CI: \$`r round(coeff['(Intercept)','2.5%'],3)`, \$`r round(coeff['(Intercept)','97.5%'],2)`). 
+>>>>>>> f82d9a6c60540ff7da8f9a8a50a7acfc8ee29176
 
 **Treatment**: Holding all else constant, for individuals who participated in the treatment we estimate the odds of nonzero wage in 1978 to increase by a factor of `r round(coeff['treat1','Estimate'],2)` (95% CI: `r round(coeff['treat1','2.5%'],2)`, `r round(coeff['treat1','97.5%'],2)`).
 
@@ -476,6 +480,7 @@ newval_74 %>%
 
 ## Discussion
 
+<<<<<<< HEAD
 * Treatment seems to be effective
 
 * 1974 employed - more confident in treatment effect on unemployed in 74. Unclear for those employed in 74.
@@ -491,6 +496,10 @@ newval_74 %>%
 
 * Good evidence that treatment has an effect
 
+=======
+## Limitations
+
+>>>>>>> f82d9a6c60540ff7da8f9a8a50a7acfc8ee29176
 
 # Appendix
 
@@ -557,8 +566,12 @@ grid.arrange(l, c, top = 'Potentially Influential Points')
 
 # Take a look at the potentially influential points
 leverage %>%
+<<<<<<< HEAD
     filter(leverage > .04 | cooks > .012) %>%
     arrange(re78c)
+=======
+    filter(leverage > .04 | cooks > .012)
+>>>>>>> f82d9a6c60540ff7da8f9a8a50a7acfc8ee29176
 ```
 
 People who are employed in 74 and not employed in 78.
