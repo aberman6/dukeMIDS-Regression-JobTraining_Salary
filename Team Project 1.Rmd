@@ -60,6 +60,7 @@ summary(lalonde)
 ```
 
 
+
 # Linear Regression
 ## Exploratory Data Analysis
 
@@ -270,11 +271,11 @@ par(mfrow = c(1,1))
 
 ## Model Selection
 
-Through a series of modeling fittings, we examined a variety of linear models to answer the question, 'Is there evidence that workers who receive job training tend to be more likely to have positive (non-zero) wages than workers who do not receive job training?'. We evaluated each model based on the area under the curve (AUC) and whether addition variables and interactions resulted in a significant or near-significant change in deviance tests.
+We examined a variety of linear models to answer the question, 'Is there evidence that workers who receive job training tend to be more likely to have positive (non-zero) wages than workers who do not receive job training?'. We evaluated each model based on the area under the curve (AUC) and whether addition variables and interactions resulted in a significant or near-significant change in deviance tests.
 
 We attempted binning education in multiple ways, nonzero 1974 and 1975 variables. We also examoined potential interactions between treatment and previous salaries as well as interactions between treatment and level of education (see appendix for examination of interaction effects). Additionally, we used mean-centered continuous variables to aid in interpretation.
 
-Before we finalized our model selection we examined the residuals and influential points. The residuals of this model are normally distributed and fit our assumptions of logistic regression (see appendix). 
+Before we finalized our model selection we examined the residuals and influential points. The residuals of this model fit our assumptions of logistic regression (see appendix). 
 
 The most influential points in our model were determined to be corner cases and did not call for alteration of our final model. (For further details on our model's redisuals and influential points, see appendix).
 
@@ -294,6 +295,7 @@ plot(roc, print.thres = 'best')
 threshold <- .82
 matrix <- round(prop.table(table(lalonde$employed78, 
                                  final_log_fit$fitted > threshold), 1)*100,1)
+print('Confusion Matrix')
 table(lalonde$employed78,final_log_fit$fitted > threshold)
 
 # Coefficient matrix
@@ -301,6 +303,7 @@ coeff <- cbind(exp(summary(final_log_fit)$coefficients[, 1]),
                exp(confint(final_log_fit)))
 coeff <- data.frame(coeff) 
 names(coeff) <- c('Estimate', '2.5%', '97.5%')
+print('Confidence intervals')
 coeff
 ```
 
@@ -469,6 +472,12 @@ newval_74 %>%
 
 
 
+
+## Discussion
+
+## Limitations
+
+
 # Appendix
 
 Fig 1: Linear Interaction Plots
@@ -532,7 +541,7 @@ grid.arrange(l, c, top = 'Potentially Influential Points')
 
 # Take a look at the potentially influential points
 leverage %>%
-    filter(leverage > .05 | cooks > .02)
+    filter(leverage > .04 | cooks > .012)
 ```
 
 The influential points show that our model is not as accurate in its predictions for those who have high salaries in either 1974 or 1975. Because these are not the typical demographic to partake in a job training program, they are not of great interest for this research paper. Therefore we do not alter our model. 
