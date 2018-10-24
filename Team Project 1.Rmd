@@ -301,6 +301,7 @@ coeff <- cbind(exp(summary(final_log_fit)$coefficients[, 1]),
                exp(confint(final_log_fit)))
 coeff <- data.frame(coeff) 
 names(coeff) <- c('Estimate', '2.5%', '97.5%')
+coeff
 ```
 
 ## Interpretation
