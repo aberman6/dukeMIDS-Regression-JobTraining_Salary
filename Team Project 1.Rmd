@@ -3,8 +3,8 @@ title: "Team Project 1"
 author: "Allison Young and Anna Berman"
 date: "10/24/2018"
 output:
-  pdf_document: default
   html_document: default
+  pdf_document: default
 ---
 
 ```{r setup, include=FALSE}
@@ -137,9 +137,9 @@ grid.arrange(e1, e2, e3, e4, e5, e6, e7, e8, e9,
  
 ## Model Selection
 
- Through a series of modeling fittings, we examined a variety of linear models to answer the question, 'Is there evidence that workers who receive job training tend to earn higher wages than workers who do not receive job training?'. We evaluated each model based on R-squared value and whether addition variables and interactions resulted in a significant or near-significant nested F test results.
+Through a series of modeling fittings, we examined a variety of linear models to answer the question, 'Is there evidence that workers who receive job training tend to earn higher wages than workers who do not receive job training?'. We evaluated each model based on R-squared value and whether addition variables and interactions resulted in a significant or near-significant nested F test results.
  
-We attempted logging our outcome variable, 1978 salary (re78), using nodegree as opposed to education, and using education as a continuous variable as well as a binned factor variable. We also looked at potential interaction effects between treatment and education as well as treatment and black (see Appendix Fig. 1 for plots of potential interaction effects). Additionally, we used mean-centered continuous variables to aid in interpretation.
+We attempted logging our outcome variable (1978 salary (re78)), logging 1974 and 1975 salaries, using nodegree as opposed to education, using education as a continuous variable as well as a binned factor variable. We also looked at potential interaction effects between treatment and education, treatment and black, treatment and hispanic, and treatment and age (see Appendix Fig. 1 for plots of potential interaction effects). Additionally, we used mean-centered continuous variables to aid in interpretation.
 
 Ultimately, we selected the following model. The residuals of this model are normally distributed and fit our assumptions of linear regression (see Appendix Fig. 2 for residual plots).
 
@@ -158,7 +158,7 @@ coeff
 
 ## Interpretation
 
-**Intercept**: For non-black, non-hispanic, un-married individuals of average age, average 1974 and 1975 salaries, with High School only education, who did not recieve treatment, we estimate the average salary in 1978 to be \$`r round(coeff['(Intercept)','Estimate'],2)` (95% CI: \$`r round(coeff['(Intercept)','2.5%'],2)`, \$`r round(coeff['(Intercept)','97.5%'],2)`).
+**Intercept**: For non-black, non-hispanic, un-married individuals of average age, average 1974 and 1975 salaries, with High School only education, who did not recieve treatment, we estimate the average salary in 1978 to be \$`r round(coeff['(Intercept)','Estimate'],2)` (95% CI: \$`r round(coeff['(Intercept)','2.5%'],2)`, \$`r round(coeff['(Intercept)','97.5%'],2)`). 
 
 **Treatment**: Holding all else constant, individuals who participated in the treatment are estimated to have average 1978 salaries increased by \$`r round(coeff['treat','Estimate'],2)` (95% CI: \$`r round(coeff['treat','2.5%'],2)`, \$`r round(coeff['treat','97.5%'],2)`).
 
@@ -172,6 +172,8 @@ coeff
 
 * More than a high school education: we estimate avergage 1978 salary to be \$`r round(coeff['educ.binMore than HS','Estimate'],2)` more (95% CI: \$`r round(coeff['educ.binMore than HS','2.5%'],2)`, \$`r round(coeff['educ.binMore than HS','97.5%'],2)`).
 
+**Married**: Holding all else constant, for married individuals we estimate average 1978 salaries to be \$`r round(coeff['married','Estimate'],2)` more (95% CI: \$`r round(coeff['married','2.5%'],2)`, \$`r round(coeff['married','97.5%'],2)`). Given that this confidence interval includes 0, we are not confident that there is a meaningful effect of blackness on 1978 salary.
+
 **Black**: Holding all else constant, for black individuals we estimate average 1978 salaries to be \$`r -round(coeff['black','Estimate'],2)` less (95% CI: \$`r round(coeff['black','2.5%'],2)`, \$`r round(coeff['black','97.5%'],2)`). Given that this confidence interval includes 0, we are not confident that there is a meaningful effect of blackness on 1978 salary.
 
 **Hispanic**: Holding all else constant, for black individuals we estimate average 1978 salaries to be \$`r round(coeff['hispan','Estimate'],2)` more (95% CI: \$`r round(coeff['hispan','2.5%'],2)`, \$`r round(coeff['hispan','97.5%'],2)`). Given that this confidence interval includes 0, we are not confident that there is a meaningful effect of hispanic ethnicity on 1978 salary.
@@ -180,16 +182,32 @@ coeff
 
 **1975 Salary**: Holding all else constant, for each $1,000 an individual made in 1975, on average we estimate his 1978 salary to be \$`r round(coeff['re75c','Estimate']*1000,2)` higher (95% CI: \$`r round(coeff['re75c','2.5%']*1000,2)`, \$`r round(coeff['re75c','97.5%']*1000,2)`). 
 
-## Conclusion
+## Discussion
+
+Because this is a randomized control trial, we can say treatment may result in increased salaries. However the effect size of treatment may be small. 
+
+The effect is confounded by age, ethnicity, education, marital status, and previous salary.
+
+* Both being black being hispanic, and being married may not have an effect on salary
+
+* 1974 is more representative of earning potential in 1978 compared to 1975
+
+* Unclear whether there is a huge difference between some hs and hs completion. Matters when you have less than ms or more than hs
+
+Fig Treatment
 
 ### Limitations
 
+Doesn't work for wealthy or older individuals
+Outliers
 
 # Appendix
 
 Fig 1: Linear Interaction Plots
 Fig 2: Linear Residual Plots
-Fig 3: Influential points
+Fig 3: Influential points 
+Code
+Any other limitations plots + outlier
 
 
  
