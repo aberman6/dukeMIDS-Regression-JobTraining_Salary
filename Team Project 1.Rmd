@@ -197,16 +197,17 @@ Our model has an R-squared of `r round(summary(final_linear_fit)$r.squared,2)`. 
 
 ## Discussion
 
-Because this is a randomized control trial, we can say treatment may result in increased salaries. However the effect size of treatment may be small. 
+## Discussion
 
-* The effect is confounded by age, ethnicity, education, marital status, and previous salary.
+Because this is a randomized control trial, we can say treatment may result in increased salaries. However the effect size of treatment may be small.
 
-* Both being black being hispanic, and being married may not have an effect on salary
+The effect of treatment on salary is confounded by additional factors that, when isolated, also explain differences in salary in this data set. These factors include age, ethnicity, education, marital status, and previous salary.
 
-* 1974 is more representative of earning potential in 1978 compared to 1975
+Some factors may or may not have an effect on salary. The factors that fall into this category are being black, being hispanic, and being married. This is evident because, when isolated, the cofidence intervals of the model coefficients include zero.
 
-* Unclear whether there is a huge difference between some hs and hs completion. Matters when you have less than ms or more than hs
+From our data exploration, it appears the 1974 salary of individuals is more representative of earning potential in 1978 compared to 1975, and thus a greater predictor factor of 1978 salary in our final model.
 
+It is unclear whether having a high school diploma differs significantly from having some high school education when it comes to salary in 1978. However, it is clear that having less than a high school education results in a lower salary, and having more than a high school education results in a higher salary.
 
 ### Limitations
 
@@ -311,7 +312,7 @@ coeff
 
 Our model has an AUC of `r round(auc(roc),2)`. Using the suggested threshold of `r threshold`, our model has a sensitivity of `r matrix[2,2]/100` and a specificity of `r 1-(matrix[1,1]/100)`. In other words, our model correctly predicts `r matrix [2,2]`% of nonzero wage earners and `r matrix [1,1]`% of zero wage earners.
 
-**Intercept**: For non-black, non-hispanic, un-married individuals of average age, average 1975 salaries and a zero 1974 salary, with some High School or more education, who did not recieve treatment, we estimate the odds of nonzero salary 1978 to be \$`r round(coeff['(Intercept)','Estimate'],2)` (95% CI: \$`r round(coeff['(Intercept)','2.5%'],3)`, \$`r round(coeff['(Intercept)','97.5%'],2)`). 
+**Intercept**: For non-black, non-hispanic, un-married individuals of average age, average 1975 salaries and a zero 1974 salary, with some High School or more education, who did not recieve treatment, we estimate the odds of nonzero salary 1978 to be `r round(coeff['(Intercept)','Estimate'],2)` (95% CI: \$`r round(coeff['(Intercept)','2.5%'],3)`, `r round(coeff['(Intercept)','97.5%'],2)`). 
 
 **Treatment**: Holding all else constant, for individuals who participated in the treatment we estimate the odds of nonzero wage in 1978 to increase by a factor of `r round(coeff['treat1','Estimate'],2)` (95% CI: `r round(coeff['treat1','2.5%'],2)`, `r round(coeff['treat1','97.5%'],2)`).
 
@@ -423,11 +424,11 @@ coeff_74 <- data.frame(coeff_74)
 names(coeff_74) <- c('Estimate', '2.5%', '97.5%')
 ```
 
-*Zero Salary: Holding all else constant, for individuals who participated in the treatment we estimate the odds of nonzero wage in 1978 to increase by a factor of `r round(coeff['treat1','Estimate'],2)` (95% CI: `r round(coeff['treat1','2.5%'],2)`, `r round(coeff['treat1','97.5%'],2)`). 
+* Zero Salary: Holding all else constant, for individuals who participated in the treatment we estimate the odds of nonzero wage in 1978 to increase by a factor of `r round(coeff['treat1','Estimate'],2)` (95% CI: `r round(coeff['treat1','2.5%'],2)`, `r round(coeff['treat1','97.5%'],2)`). 
 
-*Nonzero Salary: Holding all else constant, for individuals who participated in the treatment we estimate the odds of nonzero wage in 1978 to decrease by a factor of `r round(coeff_74['treat1','Estimate'],2)` (95% CI: `r round(coeff_74['treat1','2.5%'],2)`, `r round(coeff_74['treat1','97.5%'],2)`). Given that this confidence interval includes 1, we are not confident that there is a meaningful effect of treatment on nonzero salary in 1978 for those with nonzero salaries in 1974.
+* Nonzero Salary: Holding all else constant, for individuals who participated in the treatment we estimate the odds of nonzero wage in 1978 to decrease by a factor of `r round(coeff_74['treat1','Estimate'],2)` (95% CI: `r round(coeff_74['treat1','2.5%'],2)`, `r round(coeff_74['treat1','97.5%'],2)`). Given that this confidence interval includes 1, we are not confident that there is a meaningful effect of treatment on nonzero salary in 1978 for those with nonzero salaries in 1974.
 
-```{r}
+```{r, echo = FALSE}
 # Create dummy dataset for charting
 newval_74 <- data.frame(treat = as.factor(c(0,0,1,1)),
                      employed74 = c(0,1,0,1),
@@ -475,7 +476,20 @@ newval_74 %>%
 
 ## Discussion
 
+* Treatment seems to be effective
+
+* 1974 employed - more confident in treatment effect on unemployed in 74. Unclear for those employed in 74.
+    Unclear about the reality of an interaction effect
+
 ## Limitations
+
+* Low AUC
+* Sensitivity vs. Specificity
+    Good at predicting unemployed, but not employed
+    
+# Conclusion
+
+* Good evidence that treatment has an effect
 
 
 # Appendix
@@ -488,6 +502,8 @@ Fig 2: Linear Residual Plots
 #### Linear Model
 Observations with high leverage or cooks distance in our final linear model are below:
 ```{r influential, echo = FALSE, fig.align='left'}
+mean(lalonde$re78)
+
 library(MASS)
 # Calcate leveage and cooks distance for each observation
 leverage = hatvalues(final_linear_fit)
@@ -541,10 +557,12 @@ grid.arrange(l, c, top = 'Potentially Influential Points')
 
 # Take a look at the potentially influential points
 leverage %>%
-    filter(leverage > .04 | cooks > .012)
+    filter(leverage > .04 | cooks > .012) %>%
+    arrange(re78c)
 ```
 
-The influential points show that our model is not as accurate in its predictions for those who have high salaries in either 1974 or 1975. Because these are not the typical demographic to partake in a job training program, they are not of great interest for this research paper. Therefore we do not alter our model. 
+People who are employed in 74 and not employed in 78.
+High salary
 
 Any other limitations plots + outlier
 
