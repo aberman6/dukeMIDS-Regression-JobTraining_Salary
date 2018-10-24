@@ -45,6 +45,7 @@ lalonde <- read.csv('lalondedata.txt') %>%
            agec = age - mean(age)) %>%
     # Employed in 1978
     mutate(employed78 = ifelse(re78 > 0, 1, 0),
+           employed75 = ifelse(re75 > 0, 1, 0),
            employed74 = ifelse(re74 > 0, 1, 0)) %>%
     # educ
     mutate(educ.bin = ifelse(educ < 9, 'MS or less',
@@ -68,7 +69,7 @@ For concern of multicollinearity, we cannot include both nodegree and education 
 
 A plot of each predictor in relation to our outcome variable, 1978 salary is below.
 
-```{r exploratory.linear, echo = FALSE, fig.height=6, warning=FALSE}
+```{r exploratory.linear, echo = FALSE, fig.height=5, message = FALSE}
 # TREAT
 e1 <- ggplot(lalonde) +
     geom_boxplot(mapping = aes(x = treat, y = re78)) + 
@@ -197,8 +198,6 @@ Our model has an R-squared of `r round(summary(final_linear_fit)$r.squared,2)`. 
 
 ## Discussion
 
-## Discussion
-
 Because this is a randomized control trial, we can say treatment may result in increased salaries. However the effect size of treatment may be small.
 
 The effect of treatment on salary is confounded by additional factors that, when isolated, also explain differences in salary in this data set. These factors include age, ethnicity, education, marital status, and previous salary.
@@ -282,7 +281,7 @@ The most influential points in our model were determined to be corner cases and 
 
 Ultimately, we selected the model summarized below. 
 
-```{r model.log, echo = FALSE}
+```{r model.log, echo = FALSE, fig.height=3}
 # Final fit
 final_log_fit <- glm(employed78 ~ treat*employed74 + agec + married + black + hispan + 
                          educ.bin2 + re75c, 
@@ -312,11 +311,11 @@ coeff
 
 Our model has an AUC of `r round(auc(roc),2)`. Using the suggested threshold of `r threshold`, our model has a sensitivity of `r matrix[2,2]/100` and a specificity of `r 1-(matrix[1,1]/100)`. In other words, our model correctly predicts `r matrix [2,2]`% of nonzero wage earners and `r matrix [1,1]`% of zero wage earners.
 
-<<<<<<< HEAD
+
 **Intercept**: For non-black, non-hispanic, un-married individuals of average age, average 1975 salaries and a zero 1974 salary, with some High School or more education, who did not recieve treatment, we estimate the odds of nonzero salary 1978 to be `r round(coeff['(Intercept)','Estimate'],2)` (95% CI: \$`r round(coeff['(Intercept)','2.5%'],3)`, `r round(coeff['(Intercept)','97.5%'],2)`). 
-=======
-**Intercept**: For non-black, non-hispanic, un-married individuals of average age, average 1975 salaries and a zero 1974 salary, with some High School or more education, who did not recieve treatment, we estimate the odds of nonzero salary 1978 to be \$`r round(coeff['(Intercept)','Estimate'],2)` (95% CI: \$`r round(coeff['(Intercept)','2.5%'],3)`, \$`r round(coeff['(Intercept)','97.5%'],2)`). 
->>>>>>> f82d9a6c60540ff7da8f9a8a50a7acfc8ee29176
+
+**Intercept**: For non-black, non-hispanic, un-married individuals of average age, average 1975 salaries and a zero 1974 salary, with some High School or more education, who did not recieve treatment, we estimate the odds of nonzero salary 1978 to be `r round(coeff['(Intercept)','Estimate'],2)` (95% CI: `r round(coeff['(Intercept)','2.5%'],3)`, `r round(coeff['(Intercept)','97.5%'],2)`). 
+
 
 **Treatment**: Holding all else constant, for individuals who participated in the treatment we estimate the odds of nonzero wage in 1978 to increase by a factor of `r round(coeff['treat1','Estimate'],2)` (95% CI: `r round(coeff['treat1','2.5%'],2)`, `r round(coeff['treat1','97.5%'],2)`).
 
@@ -324,7 +323,7 @@ Our model has an AUC of `r round(auc(roc),2)`. Using the suggested threshold of 
 
 **Age**: Holding all else constant, for each 10 years an individual ages on average we estimate his salary to decrease by `r round(exp(log(coeff['agec','Estimate'])*10),2)` (95% CI: `r round(exp(log(coeff['agec','2.5%'])*10),2)`, `r round(exp(log(coeff['agec','97.5%'])*10),2)`).
 
-```{r, echo = FALSE}
+```{r, echo = FALSE, fig.height=3}
 # Create dummy dataset for charting
 newval_age <- data.frame(treat = as.factor(0),
                      employed74 = 0,
@@ -363,15 +362,15 @@ ggplot(data = newval_age) +
 
 ```
 
-**Married**: Holding all else constant, for married individuals we estimate estimate the odds of nonzero wage in 1978 to increase by a factor of `r round(coeff['married','Estimate'],2)` more (95% CI: \$`r round(coeff['married','2.5%'],2)`, `r round(coeff['married','97.5%'],2)`). Given that this confidence interval includes 1, we are not confident that there is a meaningful effect of being married on odds of nonzero salary in 1978.
+**Married**: Holding all else constant, for married individuals we estimate estimate the odds of nonzero wage in 1978 to increase by a factor of `r round(coeff['married','Estimate'],2)` more (95% CI: `r round(coeff['married','2.5%'],2)`, `r round(coeff['married','97.5%'],2)`). Given that this confidence interval includes 1, we are not confident that there is a meaningful effect of being married on odds of nonzero salary in 1978.
 
-**Black**: Holding all else constant, for black individuals we estimate estimate the odds of nonzero wage in 1978 to decrease by a factor of `r round(coeff['black','Estimate'],2)` less (95% CI: \$`r round(coeff['black','2.5%'],2)`, `r round(coeff['black','97.5%'],2)`).
+**Black**: Holding all else constant, for black individuals we estimate estimate the odds of nonzero wage in 1978 to decrease by a factor of `r round(coeff['black','Estimate'],2)` less (95% CI: `r round(coeff['black','2.5%'],2)`, `r round(coeff['black','97.5%'],2)`).
 
 **Hispanic**: Holding all else constant, for black individuals we estimate estimate the odds of nonzero wage in 1978 to increase by a factor of `r round(coeff['hispan','Estimate'],2)` more (95% CI: `r round(coeff['hispan','2.5%'],2)`, `r round(coeff['hispan','97.5%'],2)`). Given that this confidence interval includes 1, we are not confident that there is a meaningful effect of hispanic ethnicity on odds of nonzero salary in 1978.
 
-**1975 Salary**: Holding all else constant, for each $1,000 an individual made in 1975, on average we estimate estimate the odds of nonzero wage in 1978 to increase by a factor of `r round(exp(log(coeff['re75c','Estimate'])*1000),2)` higher (95% CI:`r round(exp(log(coeff['re75c','2.5%'])*1000),2)`, \$`r round(exp(log(coeff['re75c','97.5%'])*1000),2)`). 
+**1975 Salary**: Holding all else constant, for each $1,000 an individual made in 1975, on average we estimate estimate the odds of nonzero wage in 1978 to increase by a factor of `r round(exp(log(coeff['re75c','Estimate'])*1000),2)` higher (95% CI:`r round(exp(log(coeff['re75c','2.5%'])*1000),2)`, `r round(exp(log(coeff['re75c','97.5%'])*1000),2)`). 
 
-```{r, echo = FALSE}
+```{r, echo = FALSE, fig.height=3}
 # Create dummy dataset for charting
 newval_75 <- data.frame(treat = as.factor(0),
                      employed74 = 0,
@@ -411,9 +410,9 @@ ggplot(data = newval_75) +
 ```
 
 
-**1974 Salary**:
+**1974 Salary (Zero vs. Nonzero)**:
 
-```{r, echo = FALSE}
+```{r, echo = FALSE, fig.height=3, warning = FALSE}
 # Rebase our models so we can discuss the impacts of 1974 nonzero salary
 # Nonzero 1974
 lalonde_1974 <- lalonde %>% 
@@ -432,7 +431,7 @@ names(coeff_74) <- c('Estimate', '2.5%', '97.5%')
 
 * Nonzero Salary: Holding all else constant, for individuals who participated in the treatment we estimate the odds of nonzero wage in 1978 to decrease by a factor of `r round(coeff_74['treat1','Estimate'],2)` (95% CI: `r round(coeff_74['treat1','2.5%'],2)`, `r round(coeff_74['treat1','97.5%'],2)`). Given that this confidence interval includes 1, we are not confident that there is a meaningful effect of treatment on nonzero salary in 1978 for those with nonzero salaries in 1974.
 
-```{r, echo = FALSE}
+```{r, echo = FALSE, fig.height=3}
 # Create dummy dataset for charting
 newval_74 <- data.frame(treat = as.factor(c(0,0,1,1)),
                      employed74 = c(0,1,0,1),
@@ -473,46 +472,232 @@ newval_74 %>%
 
 ```
 
-
-
-
-
-
 ## Discussion
 
-<<<<<<< HEAD
-* Treatment seems to be effective
+According to our findingds, participating in the training program has a positive effect on employment status for individuals who were unemployed in 1974, increasing the odds of a non-zero salary in 1978 by an estimated factor of 2.17. However, we can not say with certainty whether the impact is the same for those who were employed in 1974.
 
-* 1974 employed - more confident in treatment effect on unemployed in 74. Unclear for those employed in 74.
-    Unclear about the reality of an interaction effect
+For those employed in 1974 our estimates indicate that the job training program may actually have a negative impact, decreasing odds of employment in 1978 by an estimated factor of .74. There appears to be a negative effect on the odds of employment for those who were employed in 1974, we are not able to say with confidence that this effect is negative.  Moreover, we are unable to say an interaction between treatment and employed status in 1974 exists. The confidence intervals overlap, and as such, the true odds ratio may be the same for both groups.
+
+Odds of employment in 1978 are also influenced by number of years of education, age, and marital status. When all other factors are held constant, each of these factors is associated with greater odds of employment in 1978, with an odds ratio confidence interval that does not include 1.0.
+
+Being black, being hispanic, and an individual's 1975 salary may or may not effect odds of employment in 1978. When all other factors are held constant, each of these factors has an odds ratio confidence interval that includes 1.0.
+
 
 ## Limitations
 
-* Low AUC
-* Sensitivity vs. Specificity
-    Good at predicting unemployed, but not employed
-    
+There are several limitations to our model that should be taken into consideration when interpreting results. First, while the confidence interval for the odds ratio of employment in 1978 for an individual in a job training program doesn't include 1.0, it is very close to 1.0. Therefore, while a positive effect is likely, it may not be large.
+
+Second, our resulting model has a low area under the curve (AUC) of .59. Therefore, an AUC of .59 is on the lower end of the possible range of .5-1.0. Specific to our model, there is a sizable difference in the sensitivity (.820) and specificity (.424) of our model. Meaning, while our model is good at predicting individuals likely to be unemployed in 1978, it is not as good at capturing the breadth of individuals who are truly employed.
+
 # Conclusion
 
-* Good evidence that treatment has an effect
-
-=======
-## Limitations
-
->>>>>>> f82d9a6c60540ff7da8f9a8a50a7acfc8ee29176
+Based on our models, there is good evidence that job training positively influences the odds of employment and the salaries of individuals who complete the program. However, neither our linear model nor our logistic model provide confidence in large increases in odds of employment nor salaries, as they both have large confidence intervals.
 
 # Appendix
 
-Fig 1: Linear Interaction Plots
-Fig 2: Linear Residual Plots
+## Interaction Exploration
 
-### Influential Points
+Below is an exploration of potential interaction effects between treatment and other predictor variables in our dataset. Although some exploratory analysis seemed promising,  no addition of interaction terms meaningfully increased our models performance. Therefore our final model did not include any interaction effects.
 
-#### Linear Model
+### Linear Model
+```{r, echo = FALSE}
+# AGE
+i1 <- ggplot(lalonde) +
+    geom_point(mapping = aes(x = age, y = re78)) + 
+    ylim(c(0,61000)) + 
+    facet_grid(. ~ treat)
+
+# EDUC
+i3 <- ggplot(lalonde) +
+    geom_boxplot(mapping = aes(x = as.factor(educ), y = re78)) + 
+    ylim(c(0,61000)) + 
+    facet_grid(. ~ treat)
+
+i4 <- ggplot(lalonde) +
+    geom_boxplot(mapping = aes(x = educ.bin, y = re78)) + 
+    ylim(c(0,61000)) + 
+    facet_grid(. ~ treat)
+
+
+# RE74
+i5 <- ggplot(lalonde) +
+    geom_point(mapping = aes(x = re74, y = re78)) + 
+    ylim(c(0,61000)) + 
+    facet_grid(. ~ educ.bin)
+
+# BLACK
+i6 <- ggplot(lalonde) +
+    geom_boxplot(mapping = aes(x = as.factor(black), y = re78)) + 
+    ylim(c(0,61000)) + 
+    facet_grid(. ~ treat)
+
+# HISPAN
+i7 <- ggplot(lalonde) +
+    geom_boxplot(mapping = aes(x = as.factor(hispan), y = re78)) + 
+    ylim(c(0,61000)) + 
+    facet_grid(. ~ treat)
+
+# MARRIED
+i8 <- ggplot(lalonde) +
+    geom_boxplot(mapping = aes(x = as.factor(married), y = re78)) + 
+    ylim(c(0,61000)) + 
+    facet_grid(. ~ treat)
+
+# NODEGREE
+i9 <- ggplot(lalonde) +
+    geom_boxplot(mapping = aes(x = as.factor(nodegree), y = re78)) + 
+    ylim(c(0,61000)) + 
+    facet_grid(. ~ treat)
+
+grid.arrange(i1, i3, i4, i5, i6, i7, i8, i9,
+             top = 'Potential Interaction Effects: Linear Model')
+```
+
+### Logistic Model
+
+Below is an exploration of potential interaction effects between treatment and other predictor variables in our dataset. The only interaction effect that meaningfully improved prediction for our model was the addition an interaction between a nonzero employement in 1974 and treatment.
+
+```{r, echo = FALSE}
+par(mfrow = c(1,2))
+# Treatment and 74 salary
+# No reason for interaction effect
+binnedplot(x = lalonde[lalonde$treat == 0, 're74'], y = lalonde[lalonde$treat == 0, 'employed78'],
+           xlab = 'Re74', ylab = 'employed78 \'78 Cases',
+           ylim = c(.6,1),
+           xlim = c(0,20000),
+           main = 'No Treatment')
+binnedplot(x = lalonde[lalonde$treat == 1, 're74'], y = lalonde[lalonde$treat == 1, 'employed78'],
+           xlab = 'Re74', ylab = 'employed78 \'78 Cases',
+           ylim = c(.6,1),
+           xlim = c(0,20000),
+           main = 'Treatment')
+
+# Treatment and 75 salary
+# No reason for interaction effect
+binnedplot(x = lalonde[lalonde$treat == 0, 're75'], y = lalonde[lalonde$treat == 0, 'employed78'],
+           xlab = 'Re75', ylab = 'employed78 \'78 Cases', 
+           ylim = c(.6,1),
+           xlim = c(0,20000),
+           main = 'No Treatment')
+binnedplot(x = lalonde[lalonde$treat == 1, 're75'], y = lalonde[lalonde$treat == 1, 'employed78'],
+           xlab = 'Re75', ylab = 'employed78 \'78 Cases',
+           ylim = c(.6,1),
+           xlim = c(0,20000),
+           main = 'Treatment')
+
+# Binary 75 employed
+# Treatment doesn't have an effect for those who were in employed in 75
+# but does have a significant effect if unemployed in 74
+tab <- rbind(tapply(lalonde[lalonde$treat == 0, 'employed78'], lalonde[lalonde$treat == 0, 'employed75'], mean),
+             tapply(lalonde[lalonde$treat == 1, 'employed78'], lalonde[lalonde$treat == 1, 'employed75'], mean))
+rownames(tab) <- c('No Treatment', 'Treatment')
+colnames(tab) <- c('Unemployed 75', 'Employed 75')
+tab
+
+# Binary 74 employed
+# Interaction effect that might wash out when we add 75 interaction
+tab <- rbind(tapply(lalonde[lalonde$treat == 0, 'employed78'], lalonde[lalonde$treat == 0, 'employed74'], mean),
+             tapply(lalonde[lalonde$treat == 1, 'employed78'], lalonde[lalonde$treat == 1, 'employed74'], mean))
+rownames(tab) <- c('No Treatment', 'Treatment')
+colnames(tab) <- c('Unemployed 74', 'Employed 74')
+tab
+
+
+# Treatment and educ.bin2
+# No reason for interaction effect
+# Might help those with lower education
+tab <- rbind(tapply(lalonde[lalonde$treat == 0, 'employed78'], lalonde[lalonde$treat == 0, 'educ.bin2'], mean),
+             tapply(lalonde[lalonde$treat == 1, 'employed78'], lalonde[lalonde$treat == 1, 'educ.bin2'], mean))
+rownames(tab) <- c('No Treatment', 'Treatment')
+colnames(tab) <- c('Some HS +', 'MS or less')
+tab
+```
+
+
+
+## Residuals
+
+### Linear Model
+
+```{r, echo = FALSE}
+# TREAT
+r1 <- ggplot(lalonde) +
+    geom_boxplot(mapping = aes(x = treat, y = final_linear_fit$residuals)) + 
+    ylab('Residuals')
+
+# AGE
+r2 <- ggplot(lalonde) +
+    geom_point(mapping = aes(x = age, y = final_linear_fit$residuals)) + 
+    ylab('Residuals') 
+
+# EDUC
+r3 <- ggplot(lalonde) +
+    geom_boxplot(mapping = aes(x = educ.bin, y = final_linear_fit$residuals)) + 
+    ylab('Residuals')
+
+# BLACK
+r4 <- ggplot(lalonde) +
+    geom_boxplot(mapping = aes(x = as.factor(black), y = final_linear_fit$residuals)) + 
+    ylab('Residuals') 
+
+# HISPAN
+r5 <- ggplot(lalonde) +
+    geom_boxplot(mapping = aes(x = as.factor(hispan), y = final_linear_fit$residuals)) + 
+    ylab('Residuals')
+
+# MARRIED
+r6 <- ggplot(lalonde) +
+    geom_boxplot(mapping = aes(x = as.factor(married), y = final_linear_fit$residuals)) + 
+    ylab('Residuals')
+
+# RE74
+r7 <- ggplot(lalonde) +
+    geom_point(mapping = aes(x = re74, y = final_linear_fit$residuals)) + 
+    ylab('Residuals')
+
+# RE75
+r8 <- ggplot(lalonde) +
+    geom_point(mapping = aes(x = re75, y = final_linear_fit$residuals)) + 
+    ylab('Residuals') 
+
+grid.arrange(r1, r2, r3, r4, r5, r6, r7, r8,
+             top = 'Linear Model Residuals')
+```
+
+
+### Logistic Model
+
+```{r, echo = FALSE}
+# Calculate logistical model residuals
+rawreds <- lalonde$employed78 - fitted(final_log_fit)
+
+# educ.bin2
+tapply(rawreds, lalonde$educ.bin2, mean) 
+
+# black
+tapply(rawreds, lalonde$black, mean) 
+
+# hispan
+tapply(rawreds, lalonde$hispan, mean) 
+
+# married
+tapply(rawreds, lalonde$married, mean)
+
+# employed74
+tapply(rawreds, lalonde$employed74, mean) 
+
+# AGE
+# add a third-degree poly?
+binnedplot(x = lalonde$age, y = rawreds,
+           xlab = 'Age', ylab = 'Residuals')
+```
+
+
+## Influential Points
+
+### Linear Model
 Observations with high leverage or cooks distance in our final linear model are below:
 ```{r influential, echo = FALSE, fig.align='left'}
-mean(lalonde$re78)
-
 library(MASS)
 # Calcate leveage and cooks distance for each observation
 leverage = hatvalues(final_linear_fit)
@@ -540,7 +725,7 @@ leverage %>%
 
 The influential points show that our model is not as accurate in its predictions for those who have high salaries in either 1974 or 1975. Because these are not the typical demographic to partake in a job training program, they are not of great interest for this research paper. Therefore we do not alter our model. 
 
-#### Logistic Model
+### Logistic Model
 
 Observations with high leverage or cooks distance in our final logistic model are below:
 ```{r influential2, echo = FALSE, fig.align='left'}
@@ -566,17 +751,9 @@ grid.arrange(l, c, top = 'Potentially Influential Points')
 
 # Take a look at the potentially influential points
 leverage %>%
-<<<<<<< HEAD
-    filter(leverage > .04 | cooks > .012) %>%
-    arrange(re78c)
-=======
     filter(leverage > .04 | cooks > .012)
->>>>>>> f82d9a6c60540ff7da8f9a8a50a7acfc8ee29176
 ```
 
-People who are employed in 74 and not employed in 78.
-High salary
+We see that many of influential points are those who have nonzero salary in 1974, but who have a zero salary in 1978. These are, in fact, outliers in our observation as they are people who seem to be meaningfully financially worse off in 1978 than in 1974. These cases are potentially influencial in our model, but are scientifically relavent cases to include in our observations. Because we cannot justify removing these observations from our dataset, we leave our model unaltered.
 
-Any other limitations plots + outlier
-
- 
+Additionally, there are several outliers including relatively high 1978 salaries. Again, although this observation is not the norm, we include this observation in our model as it is an important edge case.
