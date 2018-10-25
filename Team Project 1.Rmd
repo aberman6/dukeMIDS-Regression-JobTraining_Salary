@@ -21,19 +21,17 @@ library(knitr)
 
 ## Data Overview 
 
-In the 1970s, researchers in the United States ran several randomized experiments intended to evaluate public policy programs. One of the most famous experiments is the National Supported Work Demonstration (NSWD), in which researchers wanted to assess whether or not job training for disadvantaged workers had an effect on their wages. Eligible workers were randomly assigned either to receive job training or not to receive job training. 
-
-We analyze a subset of the data from the NSWD. These and other data were originally analyzed in a highly influential paper by the economist Robert Lalonde. The reference for the study is Lalonde, R. J. (1986), Evaluating the econometric evaluations of training programs with experimental data, The American Economic Review, 76, 604 - 620.
+During the National Supported Work Demonstration (NSWD) study, researchers assessed whether or not job training for disadvantaged workers had an effect on their wages. Eligible workers were randomly assigned either to receive job training or not to receive job training. We analyze a subset of the data from the NSWD.*
 
 We will use linear and logistic regression modeling to answer the following questions of interest.
 
-* Is there evidence that workers who receive job training tend to earn higher wages than workers who do not receive job training? What is a likely range for the effect of training? Is there any evidence that the effects differ by demographic groups? Are there other interesting associations with wages that are worth mentioning?
+* Is there evidence that workers who receive job training tend to earn higher wages than workers who do not receive job training? What is a likely range for the effect of training? Is there any evidence that the effects differ by demographic groups? 
 
-* Is there evidence that workers who receive job training tend to be more likely to have positive (non-zero) wages than workers who do not receive job training? What is a likely range for the effect of training? Is there any evidence that the effects differ by demographic groups? Are there other interesting associations with positive wages that are worth mentioning?
+* Is there evidence that workers who receive job training tend to be more likely to have positive (non-zero) wages than workers who do not receive job training? What is a likely range for the effect of training? Is there any evidence that the effects differ by demographic groups? 
 
 A summary of the dataset used in both our linear and logistic regression is summarized below:
 
-```{r data, echo = FALSE}
+```{r data, echo = FALSE, comment = NA}
 # Load the data
 lalonde <- read.csv('lalondedata.txt') %>%
     mutate(treat = as.factor(treat)) %>%
@@ -159,7 +157,7 @@ Before we finalized our model selection we examined the residuals and influentia
 
 Ultimately, we selected the model summarized below. 
 
-```{r model.linear, echo = FALSE}
+```{r model.linear, echo = FALSE, comment = NA}
 final_linear_fit <- lm(re78 ~ treat + agec + educ.bin + black + hispan + married + re74c + re75c, data = lalonde)
 summary(final_linear_fit)
 
@@ -222,7 +220,7 @@ Additionally, our model appears to be less predictive for those with relatively 
 
 In terms of mulicollinearity, by the same reasoning as decribed in our linear regression summary, our only restriciton is a mutually exclusive choice between either education or nodegree. 
 
-A plot of each predictor in relation to our outcome variable, employment in 1978 is below (employment being defined as salary above 0).
+A plot of each predictor in relation to our outcome variable, nonzero wage in 1978 is below (nonzero wage being defined as salary above 0).
 
 ```{r log.explore, echo = FALSE, as.is = TRUE}
 # Create table of means
@@ -236,33 +234,33 @@ nodegree <- tapply(lalonde$employed78, lalonde$nodegree, mean)
 # Print table
 rbind(treat, educ.bin2, black, hispan, married, nodegree) %>%
     round(2) %>%
-    kable(caption = 'Average employed \'78 Cases by predictor')
+    kable(caption = 'Average Nonzero Salary \'78 Cases by predictor')
 ```
 
-```{r,echo = FALSE}
+```{r,echo = FALSE, fig.height = 4.5, fig.width=5, fig.align='center'}
 par(mfrow = c(2,2))
 #EDUC
 binnedplot(x = lalonde$educ, y = lalonde$employed78,
-           xlab = 'Education', ylab = 'employed \'78 Cases',
+           xlab = 'Education', ylab = 'Nonzero Salary \'78 Cases',
            ylim = c(0,1),
            main = 'Education')
 
 # AGE
 binnedplot(x = lalonde$age, y = lalonde$employed78,
-           xlab = 'Age', ylab = 'employed \'78 Cases',
+           xlab = 'Age', ylab = 'Nonzero Salary \'78 Cases',
            ylim = c(0,1),
            main = 'Age')
 
 
 # RE74
 binnedplot(x = lalonde$re74, y = lalonde$employed78,
-           xlab = 'Re74', ylab = 'employed \'78 Cases',
+           xlab = 'Re74', ylab = 'Nonzero Salary \'78 Cases',
            ylim = c(.6,1),
            main = '1974 Salary')
 
 # RE75
 binnedplot(x = lalonde$re75, y = lalonde$employed78,
-           xlab = 'Re75', ylab = 'employed \'78 Cases',
+           xlab = 'Re75', ylab = 'Nonzero Salary \'78 Cases',
            ylim = c(.6,1),
            main = '1975 Salary')
 par(mfrow = c(1,1))
@@ -281,7 +279,7 @@ Before we finalized our model selection we examined the residuals and influentia
 
 Ultimately, we selected the model summarized below. 
 
-```{r model.log, echo = FALSE, fig.height=3, message= FALSE, fig.width=3, fig.align='center'}
+```{r model.log, echo = FALSE, fig.height=3, message= FALSE, fig.width=3, fig.align='center', comment = NA}
 # Final fit
 final_log_fit <- glm(employed78 ~ treat*employed74 + agec + married + black + hispan + 
                          educ.bin2 + re75c, 
@@ -471,32 +469,34 @@ newval_74 %>%
 
 ## Discussion
 
-According to our findings, participating in the training program has a positive effect on employment status for individuals who were unemployed in 1974, increasing the odds of a non-zero salary in 1978 by an estimated factor of `r round(coeff['treat1','Estimate'],2)`. However, we can not say with certainty whether the impact is the same for those who were employed in 1974.
+According to our findings, for individuals with no wages in 1974 participating in the training program has a positive effect on odds of having a positive wage in 1978, increasing the odds of a nonzero wage in 1978 by an estimated factor of `r round(coeff['treat1','Estimate'],2)`. However, we can not say with certainty whether the impact is the same for those who with nonzero wages in 1974. For those with nonzero wages in 1974 our estimates indicate that the job training program may actually have a negative impact, decreasing odds of nonzero wage in 1978 by an estimated factor of `r round(coeff_74['treat1','Estimate'],2)`. There appears to be a negative effect on the odds of nonzero wage for those who were employed in 1974, we are not able to say with confidence that this effect is negative.  Moreover, we are unable to say an interaction between treatment and nonzero wage in 1974 exists. The confidence intervals overlap, and as such, the true odds ratio may be the same for both groups.
 
-For those employed in 1974 our estimates indicate that the job training program may actually have a negative impact, decreasing odds of employment in 1978 by an estimated factor of `r round(coeff_74['treat1','Estimate'],2)`. There appears to be a negative effect on the odds of employment for those who were employed in 1974, we are not able to say with confidence that this effect is negative.  Moreover, we are unable to say an interaction between treatment and employed status in 1974 exists. The confidence intervals overlap, and as such, the true odds ratio may be the same for both groups.
+Odds of nonzero wage in 1978 are also influenced by level of education, age, being black. Speicifically, level of education not including any high school, increased age, and blackness are all associated with decreased odds of nonzero wage in 1978. In other words, increased age, an elementary or middle-school level education, or being black are all associated with increased odds of zero wages. Contrastly, higher 1975 salary is assocaited with increased odds of nonzero wage in 1978.
 
-Odds of employment in 1978 are also influenced by level of education, age, being black. Speicifically, level of education not including any high school, increased age, and blackness are all associated with decreased odds of nonzero wage in 1978. In other words, increased age, an elementary or middle-school level education, or being black are all associated with increased odds of zero wages. Contrastly, higher 1975 salary is assocaited with increased odds of nonzero wage in 1978.
-
-Additionally, being Hispanic and being married may or may not be associated with odds of employment in 1978. When all other factors are held constant, each of these factors has an odds ratio confidence interval that includes 1.0.
+Additionally, being Hispanic and being married may or may not be associated with odds of nonzero wage in 1978. When all other factors are held constant, each of these factors has an odds ratio confidence interval that includes 1.0.
 
 ## Limitations
 
-There are several limitations to our model that should be taken into consideration when interpreting results. First, while the confidence interval for the odds ratio of employment in 1978 for an individual in a job training program doesn't include 1.0, it is very close to 1.0. Therefore, while a positive effect is likely, it may not be large.
+There are several limitations to our model that should be taken into consideration when interpreting results. First, while the confidence interval for the odds ratio of nonzero wage in 1978 for an individual in a job training program doesn't include 1.0, it is very close to 1.0. Therefore, while a positive effect is likely, it may not be large.
 
-Second, our resulting model has a low area under the curve (AUC) of `r round(auc(roc),2)`. Therefore, an AUC of `r round(auc(roc),2)` is on the lower end of the possible range of .5-1.0. Specific to our model, there is a sizable difference in the sensitivity (.820) and specificity `(.424) of our model. Meaning, while our model is good at predicting individuals likely to be unemployed in 1978, it is not as good at capturing the breadth of individuals who are truly employed.
+Second, our resulting model has a low area under the curve (AUC) of `r round(auc(roc),2)`. Therefore, an AUC of `r round(auc(roc),2)` is on the lower end of the possible range of .5-1.0. Specific to our model, there is a sizable difference in the sensitivity (.820) and specificity `(.424) of our model. Meaning, while our model is good at predicting individuals likely to have zero wages in 1978, it is not as good at capturing the breadth of individuals who do truly have nonzero wages in 1978.
 
-# Conclusion
+# Multi-Model Conclusion
 
-Based on our models, there is good evidence that job training positively influences the odds of employment and the salaries of individuals who complete the program. However, neither our linear model nor our logistic model provide confidence in large increases in odds of employment nor salaries, as they both have large confidence intervals.
+Based on our models, there is good evidence that job training positively influences the odds of nonzero wage and the salaries of individuals who complete the program. However, neither our linear model nor our logistic model provide confidence in large increases in odds of nonzero wage nor salaries, as they both have large confidence intervals.
+
+\pagebreak
 
 # Appendix
 
+*These and other data were originally analyzed by the economist Robert Lalonde (Lalonde, R. J. (1986), Evaluating the econometric evaluations of training programs with experimental data, The American Economic Review, 76, 604 - 620.)
+
 ## Interaction Effects
 
-Below is an exploration of potential interaction effects between treatment and other predictor variables in our dataset. Although some exploratory analysis seemed promising,  no addition of interaction terms meaningfully increased our models performance. Therefore our final model did not include any interaction effects.
-
 ### Linear Model
-```{r, echo = FALSE, fig.heigh = 8}
+Below is an exploration of potential interaction effects between treatment and other predictor variables in our dataset. Although some exploratory analysis seemed to indicate an possible interaction effect, no addition of interaction terms meaningfully increased our models performance. Therefore our final model did not include any interaction effects.
+
+```{r, echo = FALSE, fig.heigh = 10}
 # AGE
 i1 <- ggplot(lalonde) +
     geom_point(mapping = aes(x = age, y = re78)) + 
@@ -551,9 +551,9 @@ grid.arrange(i1, i3, i4, i5, i6, i7, i8, i9,
 
 ### Logistic Model
 
-Below is an exploration of potential interaction effects between treatment and other predictor variables in our dataset. The only interaction effect that meaningfully improved prediction for our model was the addition an interaction between a nonzero employment in 1974 and treatment.
+Below is an exploration of potential interaction effects between treatment and other predictor variables in our dataset. The only interaction effect that meaningfully improved prediction for our model was the addition an interaction between a nonzero wage in 1974 and treatment.
 
-```{r, echo = FALSE, fig.height = 4}
+```{r, echo = FALSE, fig.height = 3}
 par(mfrow = c(1,2))
 # Treatment and 74 salary
 # No reason for interaction effect
@@ -587,7 +587,7 @@ binnedplot(x = lalonde[lalonde$treat == 1, 're75'], y = lalonde[lalonde$treat ==
 tab <- rbind(tapply(lalonde[lalonde$treat == 0, 'employed78'], lalonde[lalonde$treat == 0, 'employed75'], mean),
              tapply(lalonde[lalonde$treat == 1, 'employed78'], lalonde[lalonde$treat == 1, 'employed75'], mean))
 rownames(tab) <- c('No Treatment', 'Treatment')
-colnames(tab) <- c('Unemployed 75', 'Employed 75')
+colnames(tab) <- c('Zero wage 75', 'Employed 75')
 tab
 
 # Binary 74 employed
@@ -595,7 +595,7 @@ tab
 tab <- rbind(tapply(lalonde[lalonde$treat == 0, 'employed78'], lalonde[lalonde$treat == 0, 'employed74'], mean),
              tapply(lalonde[lalonde$treat == 1, 'employed78'], lalonde[lalonde$treat == 1, 'employed74'], mean))
 rownames(tab) <- c('No Treatment', 'Treatment')
-colnames(tab) <- c('Unemployed 74', 'Employed 74')
+colnames(tab) <- c('Zero wage 74', 'Employed 74')
 tab
 
 
@@ -659,33 +659,41 @@ r8 <- ggplot(lalonde) +
 grid.arrange(r1, r2, r3, r4, r5, r6, r7, r8,
              top = 'Linear Model Residuals')
 
+```
+
+```{r, fig.height=3, fig.width=3, fig.align='center', echo = FALSE}
 qqnorm(final_linear_fit$residuals, ylim = c(-15000,30000))
 ```
 
 
+
 ### Logistic Model
 
-```{r, echo = FALSE}
+```{r, echo = FALSE, comment = NA, fig.height=3, fig.width=3, fig.align='center'}
 # Calculate logistical model residuals
 rawreds <- lalonde$employed78 - fitted(final_log_fit)
 
 # educ.bin2
+print('Education (educ.bin2)')
 tapply(rawreds, lalonde$educ.bin2, mean) 
 
 # black
+print('Black')
 tapply(rawreds, lalonde$black, mean) 
 
 # hispan
+print('Hispanic')
 tapply(rawreds, lalonde$hispan, mean) 
 
 # married
+print('Married')
 tapply(rawreds, lalonde$married, mean)
 
 # employed74
+print('Nonzero 1974 Salary')
 tapply(rawreds, lalonde$employed74, mean) 
 
 # AGE
-# add a third-degree poly?
 binnedplot(x = lalonde$age, y = rawreds,
            xlab = 'Age', ylab = 'Residuals')
 ```
@@ -695,7 +703,7 @@ binnedplot(x = lalonde$age, y = rawreds,
 
 ### Linear Model
 Observations with high leverage or cooks distance in our final linear model are below:
-```{r influential, echo = FALSE, fig.align='left'}
+```{r influential, echo = FALSE, fig.align='center'}
 library(MASS)
 # Calcate leveage and cooks distance for each observation
 leverage = hatvalues(final_linear_fit)
